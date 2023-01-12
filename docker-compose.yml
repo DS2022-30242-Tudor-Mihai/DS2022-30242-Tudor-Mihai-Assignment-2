@@ -1,0 +1,47 @@
+services:
+
+  db:
+    image: postgres:13.1-alpine
+
+    healthcheck:
+      test: ["CMD", "pg_isready", "-q", "-d", "postgres", "-U", "postgres"]
+      timeout: 45s
+      interval: 10s
+      retries: 5
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=PostgresNicusor20@
+      - POSTGRES_DB=sd
+      - POSTGRES_HOST_AUTH_METHOD=trust
+    ports:
+      - "5432:5432"
+    container_name: sd
+
+
+  server:
+    build: ./project1
+    container_name: server
+    image: server:latest
+    restart: always
+    ports:
+      - 8081:8081
+    depends_on:
+      - db
+    environment:
+      - DB_IP=db
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASSWORD=PostgresNicusor20@
+      - DB_DBNAME=sd
+
+  client:
+    depends_on:
+      - server
+    image: client:latest
+    container_name: client
+    build: ./client
+    ports:
+      - 3000:3000
+    stdin_open: true
+    tty: true
